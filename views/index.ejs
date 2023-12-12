@@ -1,0 +1,195 @@
+<script src="https://unpkg.com/@reactivex/rxjs@5.3.0/dist/global/Rx.js">
+</script>
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.2/jquery.min.js" integrity="sha512-tWHlutFnuG0C6nQRlpvrEhE4QpkG1nn2MOUMWmUeRePl4e3Aki0VB6W1v3oLjFtd0hVOtRQ9PHpSfN6u6/QXkQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<img id="memezzz">
+<div class="con">
+    <h1>Very cool notes app</h1>
+    <div class="form">
+        <input type="text" id="text" placeholder="some text">
+        <select id="color">
+            <option value="red">Red</option>
+            <option value="green">Green</option>
+            <option value="blue">Blue</option>
+        </select>
+        <button id="btn" onclick="newNote()">Add</button>
+    </div>
+    <div id="notes">
+      <% for(const obj of data){ %>
+        <div>
+          <div class="note <%= obj.color %>"> <%= obj.text %> </div>
+          <button id="edit">Edit</button>
+          <button id="del">Remove</button>
+          <input id="UID" type="hidden" value="<%= obj.UID %> "> 
+        </div>
+      <% } %> 
+    </div>
+</div>
+
+<script>
+
+document.addEventListener('DOMContentLoaded', () => {
+
+  $.get("http://localhost:8080/getMeme", null, (data, status) => {
+         console.log(data);
+         memezzz.src = data;
+    });
+   
+
+  const buttons = document.querySelectorAll('button#edit');
+  console.log(buttons)
+  Rx.Observable.fromEvent(buttons, 'click')
+    .subscribe(buttonId => {
+      console.log(`Button "${buttonId}" clicked.`);
+    });
+
+  const buttons2 = document.querySelectorAll('button#del');
+  console.log(buttons)
+
+  Rx.Observable.fromEvent(buttons2, 'click')
+    .subscribe(buttonId => {
+      //console.log(buttonId.target.parentElement.querySelector("input").value);
+      removeNote(buttonId.target.parentElement.querySelector("input").value);
+     
+    });
+    confet();
+    confet();
+    confet();
+    confet();
+});
+
+
+function EditNote(item, index) 
+    {
+        const editbox = document.createElement("input");
+        editbox.value = notes[index].text;  
+        console.log(notes[index].text)
+
+        const update = document.createElement("button");
+        update.textContent = "apply";  
+        update.id = "edit"
+
+        const can = document.createElement("button");
+        can.textContent = "exit";  
+        can.id = "edit"
+
+        item.appendChild(editbox);
+        item.appendChild(update);
+        item.appendChild(can);	
+
+        Rx.Observable.fromEvent(can, 'click')
+        .subscribe(
+            (value) => {CanEditNote(item);}
+        );
+
+        Rx.Observable.fromEvent(update, 'click')
+        .subscribe(
+            (value) => {
+                ConfEditNote(item, index );
+            }
+        );
+    }
+
+    function removeNote(UID) 
+    {
+      $.post("http://localhost:8080/del/"+UID, null, (data, status) => {
+         console.log(data);
+         
+      }).then(window.location.replace("http://localhost:8080/rel"));
+      
+
+    }
+
+    function newNote() 
+    {
+      const noteText = document.getElementById("text").value;
+      const noteColor = document.getElementById("color").value;
+
+      $.post("http://localhost:8080/add/"+noteText+"/"+noteColor, null, (data, status) => {
+         console.log(data);
+         
+      }).then(window.location.replace("http://localhost:8080/rel"));
+
+    }
+
+function confet()
+{
+  var myCanvas = document.createElement('canvas');
+  document.body.appendChild(myCanvas);
+
+  var myConfetti = confetti.create(myCanvas, {
+    resize: true,
+    useWorker: true
+  });
+  myConfetti({
+    particleCount: 100,
+    spread: 160
+    // any other options from the global
+    // confetti function
+  });
+
+}
+</script>
+
+   <style>
+    /*make an ok box layout*/
+.con {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 20px;
+    background-color: white;
+    border-radius: 10px;
+    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2);
+}
+.form {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 20px;
+}
+
+input[type="text"] {
+    flex-grow: 1;
+    padding: 10px;
+    border: none;
+    border-radius: 5px;
+}
+
+select {
+    padding: 10px;
+    border: none;
+    border-radius: 5px;
+}
+
+button {
+    padding: 10px 20px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.note {
+    margin-top: 20px;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+.note.red {
+    background-color: red;
+}
+
+.note.green {
+    background-color: green;
+}
+
+.note.blue {
+    background-color: blue;
+}
+img{
+    width:100%;
+    max-width:250px;
+}
+   </style>
